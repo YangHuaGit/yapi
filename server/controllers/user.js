@@ -41,7 +41,10 @@ class userController extends baseController {
     }
 
     let result = await userInst.findByEmail(email);
-
+    let result1 = await userInst.findByUsername(email);
+    if(!result){
+      result = result1
+    }
     if (!result) {
       return (ctx.body = yapi.commons.resReturn(null, 404, '该用户不存在'));
     } else if (yapi.commons.generatePassword(password, result.passsalt) === result.password) {

@@ -192,7 +192,8 @@ export function addProject(data) {
     protocol,
     icon,
     color,
-    project_type
+    project_type,
+    catalogPath
   } = data;
 
   // 过滤项目名称中有html标签存在的情况
@@ -207,7 +208,8 @@ export function addProject(data) {
     group_name,
     icon,
     color,
-    project_type
+    project_type,
+    catalogPath
   };
   return {
     type: PROJECT_ADD,
@@ -218,7 +220,7 @@ export function addProject(data) {
 // 修改项目
 export function updateProject(data) {
   let { name, project_type, basepath, desc, _id, env, group_id, switch_notice, strice, is_json5, tag } = data;
-  
+
   // 过滤项目名称中有html标签存在的情况
   name = htmlFilter(name);
   const param = {

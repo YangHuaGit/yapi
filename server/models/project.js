@@ -58,7 +58,8 @@ class projectModel extends baseModel {
       is_mock_open: { type: Boolean, default: false },
       strice: { type: Boolean, default: false },
       is_json5: { type: Boolean, default: true },
-      tag: [{name: String, desc: String}]
+      tag: [{name: String, desc: String}],
+      catalogPath:{ type: String}
     };
   }
 
@@ -97,7 +98,7 @@ class projectModel extends baseModel {
         return item;
       })
     }
-    
+
     if(isFix){
       this.model.update(
         {

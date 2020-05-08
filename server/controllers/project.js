@@ -15,6 +15,9 @@ const tokenModel = require('../models/token.js');
 const {getToken} = require('../utils/token')
 const sha = require('sha.js');
 const axios = require('axios').default;
+const url = require('url');
+
+
 
 class projectController extends baseController {
   constructor(ctx) {
@@ -25,6 +28,8 @@ class projectController extends baseController {
     this.followModel = yapi.getInst(followModel);
     this.tokenModel = yapi.getInst(tokenModel);
     this.interfaceModel = yapi.getInst(interfaceModel);
+    this.colModel = yapi.getInst(interfaceColModel);
+    this.caseModel = yapi.getInst(interfaceCaseModel);
 
     const id = 'number';
     const member_uid = ['number'];
@@ -51,6 +56,8 @@ class projectController extends baseController {
     const icon = 'string';
     const color = 'string';
     const env = 'array';
+    const catalogPath = 'string';
+
 
     const cat = 'array';
     this.schemaMap = {
@@ -62,7 +69,8 @@ class projectController extends baseController {
         desc: desc,
         color,
         icon,
-        project_type
+        project_type,
+        catalogPath
       },
       copy: {
         '*name': name,
@@ -205,6 +213,15 @@ class projectController extends baseController {
       return (ctx.body = yapi.commons.resReturn(null, 401, 'basepath格式有误'));
     }
 
+    let domain =  'http://127.0.0.1'
+    let prefix = ''
+    if(params.catalogPath){
+      const  urlObject   = url.parse(params.catalogPath);
+      console.log(urlObject)
+      prefix = urlObject.protocol + "//" + urlObject.host
+      domain = prefix
+    }
+
     let data = {
       name: params.name,
       desc: params.desc,
@@ -219,12 +236,17 @@ class projectController extends baseController {
       add_time: yapi.commons.time(),
       up_time: yapi.commons.time(),
       is_json5: false,
-      env: [{ name: 'local', domain: 'http://127.0.0.1' }]
+      // env: [{ name: 'local', domain: 'http://127.0.0.1' }],
+      env: [{ name: 'local', domain: domain}],
+      catalogPath:params.catalogPath
     };
+
 
     let result = await this.Model.save(data);
     let colInst = yapi.getInst(interfaceColModel);
     let catInst = yapi.getInst(interfaceCatModel);
+    let ifInst = yapi.getInst(interfaceModel);
+
     if (result._id) {
       await colInst.save({
         name: '公共测试集',
@@ -234,6 +256,110 @@ class projectController extends baseController {
         add_time: yapi.commons.time(),
         up_time: yapi.commons.time()
       });
+
+      if(params.catalogPath){
+        let interface_list = []
+        let res = await axios.get(params.catalogPath)
+        if(res.data['oslc:serviceProvider']){
+          for(let serviceProvider of res.data['oslc:serviceProvider']){
+             let cat = await catInst.save({
+              name: serviceProvider['dcterms:title'],
+              project_id: result._id,
+              desc: serviceProvider['dcterms:description'],
+              uid: this.getUid(),
+              add_time: yapi.commons.time(),
+              up_time: yapi.commons.time()
+            });
+            for(let service of serviceProvider['oslc:service']){
+              if(service['oslc:creationDialog']){
+                for( let creationDialog of service['oslc:creationDialog']){
+                  let r =
+                      await ifInst.save({
+                        title:creationDialog['dcterms:title'],
+                        catid:cat._id,
+                        path:creationDialog['oslc:dialog']['rdf:resource'].replace(prefix,''),
+                        project_id: result._id,
+                        method:'GET',
+                        uid: this.getUid(),
+                        add_time: yapi.commons.time(),
+                        up_time: yapi.commons.time(),
+                        type:'static'
+                      })
+                    interface_list.push(r._id)
+                }
+              }
+              if(service['oslc:creationFactory']){
+                for( let creationFactory of service['oslc:creationFactory']){
+                  let r = await
+                      ifInst.save({
+                        title:creationFactory['dcterms:title'],
+                        catid:cat._id,
+                        path: creationFactory['oslc:creation']['rdf:resource'].replace(prefix,''),
+                        project_id: result._id,
+                        method:'POST',
+                        uid: this.getUid(),
+                        add_time: yapi.commons.time(),
+                        up_time: yapi.commons.time(),
+                        type:'static'
+                      })
+                  interface_list.push(r._id)
+                }
+              }
+              if(service['oslc:queryCapability']){
+                for( let queryCapability of service['oslc:queryCapability']){
+                  let r =await
+                      ifInst.save({
+                        title:queryCapability['dcterms:title'],
+                        catid:cat._id,
+                        path:queryCapability['oslc:queryBase']['rdf:resource'].replace(prefix,''),
+                        project_id: result._id,
+                        method:'GET',
+                        uid: this.getUid(),
+                        add_time: yapi.commons.time(),
+                        up_time: yapi.commons.time(),
+                        type:'static'
+                      })
+                  interface_list.push(r._id)
+                }
+              }
+              if(service['oslc:selectionDialog']){
+                for( let selectionDialog of service['oslc:selectionDialog']){
+                  let r =await
+                      ifInst.save({
+                        title:selectionDialog['dcterms:title'],
+                        catid:cat._id,
+                        path:selectionDialog['oslc:dialog']['rdf:resource'].replace(prefix,''),
+                        project_id: result._id,
+                        method:'GET',
+                        uid: this.getUid(),
+                        add_time: yapi.commons.time(),
+                        up_time: yapi.commons.time(),
+                        type:'static'
+                      })
+                  interface_list.push(r._id)
+                }
+              }
+            }
+          }
+        }
+
+       let col =  await colInst.save({
+          name: res.data['dcterms:title'],
+          project_id: result._id,
+          desc: res.data['dcterms:description'],
+          uid: this.getUid(),
+          add_time: yapi.commons.time(),
+          up_time: yapi.commons.time()
+        });
+
+       await this.addCaseList({
+         col_id : col._id,
+         interface_list: interface_list,
+         project_id:result._id
+       })
+      }
+
+
       await catInst.save({
         name: '公共分类',
         project_id: result._id,
@@ -261,6 +387,68 @@ class projectController extends baseController {
     });
     yapi.emitHook('project_add', result).then();
     ctx.body = yapi.commons.resReturn(result);
+  }
+
+
+  async addCaseList(params) {
+    try {
+      params = yapi.commons.handleParams(params, {
+        project_id: 'number',
+        col_id: 'number'
+      });
+
+      let data = {
+        uid: this.getUid(),
+        index: 0,
+        add_time: yapi.commons.time(),
+        up_time: yapi.commons.time(),
+        project_id: params.project_id,
+        col_id: params.col_id
+      };
+
+      for (let i = 0; i < params.interface_list.length; i++) {
+        let interfaceData = await this.interfaceModel.get(params.interface_list[i]);
+        data.interface_id = params.interface_list[i];
+        data.casename = interfaceData.title;
+
+        // 处理json schema 解析
+        if (
+            interfaceData.req_body_type === 'json' &&
+            interfaceData.req_body_other &&
+            interfaceData.req_body_is_json_schema
+        ) {
+          let req_body_other = yapi.commons.json_parse(interfaceData.req_body_other);
+          req_body_other = yapi.commons.schemaToJson(req_body_other, {
+            alwaysFakeOptionals: true
+          });
+
+          data.req_body_other = JSON.stringify(req_body_other);
+        } else {
+          data.req_body_other = interfaceData.req_body_other;
+        }
+
+        data.req_body_type = interfaceData.req_body_type;
+        let caseResultData = await this.caseModel.save(data);
+        let username = this.getUsername();
+        this.colModel.get(params.col_id).then(col => {
+          yapi.commons.saveLog({
+            content: `<a href="/user/profile/${this.getUid()}">${username}</a> 在接口集 <a href="/project/${
+                params.project_id
+            }/interface/col/${params.col_id}">${col.name}</a> 下导入了测试用例 <a href="/project/${
+                params.project_id
+            }/interface/case/${caseResultData._id}">${data.casename}</a>`,
+            type: 'project',
+            uid: this.getUid(),
+            username: username,
+            typeid: params.project_id
+          });
+        });
+      }
+
+      this.Model.up(params.project_id, { up_time: new Date().getTime() }).then();
+    } catch (e) {
+
+    }
   }
 
   /**

@@ -22,10 +22,10 @@ import './GroupList.scss';
 
 const tip = (
   <div className="title-container">
-    <h3 className="title">欢迎使用 YApi ~</h3>
+    <h3 className="title">欢迎使用 工业App开放接口标准化测试工具 ~</h3>
     <p>
       这里的 <b>“个人空间”</b>{' '}
-      是你自己才能看到的分组，你拥有这个分组的全部权限，可以在这个分组里探索 YApi 的功能。
+      是你自己才能看到的分组，你拥有这个分组的全部权限，可以在这个分组里探索 工业App开放接口标准化测试工具 的功能。
     </p>
   </div>
 );
@@ -221,7 +221,7 @@ export default class GroupList extends Component {
                   <Icon className="btn" type="folder-add" onClick={this.showModal} />
                 </a>
               </Tooltip>
-            
+
             </div>
             <div className="curr-group-desc">简介: {currGroup.group_desc}</div>
           </div>

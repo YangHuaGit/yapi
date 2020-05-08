@@ -68,6 +68,21 @@ class ProjectList extends Component {
     });
   };
 
+  handleType = e =>{
+      let val = e.target.value;
+      this.props.form.setFieldsValue({
+          oslc: val
+      });
+  }
+
+
+  handleCatalogPath= e =>{
+    let val = e.target.value;
+    this.props.form.setFieldsValue({
+      catalogPath: val
+    });
+  }
+
   // 确认添加项目
   @autobind
   handleOk(e) {
@@ -139,6 +154,27 @@ class ProjectList extends Component {
                   ))}
                 </Select>
               )}
+            </FormItem>
+
+            <FormItem
+                {...formItemLayout}
+                label={
+                  <span>
+                    catalogPath 
+                    <Tooltip title="接口基本路径，为空是根路径">
+                      <Icon type="question-circle-o" />
+                    </Tooltip>
+                  </span>
+                }
+            >
+              {getFieldDecorator('catalogPath', {
+                rules: [
+                  {
+                    required: false,
+                    message: '请输入项目基本路径'
+                  }
+                ]
+              })(<Input onBlur={this.handleCatalogPath} />)}
             </FormItem>
 
             <hr className="breakline" />

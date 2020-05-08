@@ -4,12 +4,12 @@ const groupController = require('./controllers/group.js');
 const userController = require('./controllers/user.js');
 const interfaceColController = require('./controllers/interfaceCol.js');
 const testController = require('./controllers/test.js');
-
 const yapi = require('./yapi.js');
 const projectController = require('./controllers/project.js');
 const logController = require('./controllers/log.js');
 const followController = require('./controllers/follow.js');
 const openController = require('./controllers/open.js');
+const ssoController = require('./controllers/sso.js');
 const { createAction } = require('./utils/commons.js');
 
 const router = koaRouter();
@@ -53,6 +53,13 @@ let INTERFACE_CONFIG = {
   }
 };
 
+let CUSTOM_INTERFACE_CONFIG = {
+  sso:{
+    prefix:'/',
+    controller: ssoController
+  }
+}
+
 let routerConfig = {
   group: [
     {
@@ -61,7 +68,6 @@ let routerConfig = {
       method: 'get'
     },
 
-    
     {
       action: 'list',
       path: 'list',
@@ -579,7 +585,15 @@ let routerConfig = {
       method: 'post'
     }
   ]
-};
+ };
+
+let custom_routerConfig = {
+  sso:[{
+    action:'sso',
+    path:'sso/:username',
+    method:'get'
+  }]
+}
 
 let pluginsRouterPath = [];
 
@@ -606,6 +620,16 @@ for (let ctrl in routerConfig) {
     let routerController = INTERFACE_CONFIG[ctrl].controller;
     let routerPath = INTERFACE_CONFIG[ctrl].prefix + item.path;
     createAction(router, '/api', routerController, item.action, routerPath, item.method);
+  });
+}
+
+
+for (let  ctrl in custom_routerConfig) {
+  let actions = custom_routerConfig[ctrl];
+  actions.forEach(item => {
+    let routerController = CUSTOM_INTERFACE_CONFIG[ctrl].controller;
+    let routerPath = CUSTOM_INTERFACE_CONFIG[ctrl].prefix + item.path;
+    createAction(router, '', routerController, item.action, routerPath, item.method);
   });
 }
 

@@ -108,7 +108,7 @@ class Login extends Component {
             <Input
               style={changeHeight}
               prefix={<Icon type="user" style={{ fontSize: 13 }} />}
-              placeholder="Email"
+              placeholder="Username/Email"
             />
           )}
         </FormItem>

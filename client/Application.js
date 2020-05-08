@@ -142,7 +142,7 @@ export default class App extends Component {
                 {/* <Route path="/statistic" component={statisticsPage} /> */}
               {/* </div> */}
             </div>
-            <Footer />
+            {/*<Footer />*/}
           </div>
         </Router>
       );

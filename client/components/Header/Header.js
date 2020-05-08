@@ -85,7 +85,7 @@ const tipDoc = (
       使用文档 <Tag color="orange">推荐!</Tag>
     </h3>
     <p>
-      初次使用 YApi，强烈建议你阅读{' '}
+      初次使用 工业App开放接口标准化测试工具，强烈建议你阅读{' '}
       <a target="_blank" href="https://hellosean1025.github.io/yapi/" rel="noopener noreferrer">
         使用文档
       </a>
@@ -297,10 +297,19 @@ export default class HeaderCom extends Component {
     return (
       <Header className="header-box m-header">
         <div className="content g-row">
+          {/*<Link onClick={this.relieveLink} to="/group" className="logo">*/}
+          {/*  <div className="href">*/}
+          {/*    <span className="img">*/}
+          {/*      /!*<LogoSVG length="32px" />*!/*/}
+          {/*      工业App开放接口标准化测试工具*/}
+          {/*    </span>*/}
+          {/*  </div>*/}
+          {/*</Link>*/}
           <Link onClick={this.relieveLink} to="/group" className="logo">
             <div className="href">
               <span className="img">
-                <LogoSVG length="32px" />
+                {/*<LogoSVG length="32px" />*/}
+                工业App开放接口标准化测试工具
               </span>
             </div>
           </Link>

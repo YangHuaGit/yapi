@@ -75,6 +75,10 @@ class userModel extends baseModel {
     return this.model.findOne({ email: email });
   }
 
+  findByUsername(username) {
+    return this.model.findOne({ username: username });
+  }
+
   findById(id) {
     return this.model.findOne({
       _id: id
